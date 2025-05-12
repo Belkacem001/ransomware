@@ -34,8 +34,9 @@ gcc client_decrypt.c -o client_decrypt -lssl -lcrypto
  
 mkdir Projet
 echo "Hello world" > Projet/test.txt
- 
-./serveur_pardon &
-./ransomware &
-sleep 35
+
+ // Sur des terminaux différents pour suivre l'avancement
+
+./serveur_pardon 
+./ransomware 
 ./client_decrypt
