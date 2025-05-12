@@ -1,7 +1,7 @@
 # ransomware
 Membre du groupe 10:
 
-IMADALI Belakcem
+IMADALI Belkacem
 
 BOUCHAKOUR Nadir 
 
