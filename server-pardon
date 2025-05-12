@@ -1,0 +1,49 @@
+// TP/serveur_pardon.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+unsigned char stored_key[32];
+unsigned char stored_iv[16];
+int received = 0;
+
+int main() {
+    int server_fd, new_socket;
+    struct sockaddr_in address;
+    socklen_t addrlen = sizeof(address);
+    char buffer[1024];
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(4242);
+    bind(server_fd, (struct sockaddr*)&address, sizeof(address));
+    listen(server_fd, 3);
+
+    printf("[*] Serveur en écoute sur 127.0.0.1:4242\n");
+
+    while (1) {
+        new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
+        if (!received) {
+            read(new_socket, stored_key, 32);
+            read(new_socket, stored_iv, 16);
+            received = 1;
+            printf("[+] Clé/IV reçues.\n");
+        } else {
+            send(new_socket, "Écrivez votre excuse : ", 24, 0);
+            int len = read(new_socket, buffer, sizeof(buffer) - 1);
+            buffer[len] = 0;
+            if (len >= 20) {
+                write(new_socket, stored_key, 32);
+                write(new_socket, stored_iv, 16);
+                printf("[+] Excuse acceptée. Clé envoyée.\n");
+            } else {
+                send(new_socket, "Excuse trop courte.", 20, 0);
+            }
+        }
+        close(new_socket);
+    }
+    return 0;
+}
